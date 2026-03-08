@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "journaling_mcp",
+  "project_id": "7751b270-2959-407f-8920-571a2962bc64"
+}
