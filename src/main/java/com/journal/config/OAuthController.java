@@ -168,7 +168,8 @@ public class OauthController {
           .body(Map.of("error", "invalid_grant", "error_description", "PKCE verification failed"));
     }
 
-    return ResponseEntity.ok(Map.of("access_token", apiKey, "token_type", "bearer"));
+    return ResponseEntity.ok(
+        Map.of("access_token", apiKey, "token_type", "bearer", "expires_in", 86400));
   }
 
   private static String escapeHtml(String input) {

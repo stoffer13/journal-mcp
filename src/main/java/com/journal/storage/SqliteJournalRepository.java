@@ -270,7 +270,8 @@ public class SqliteJournalRepository {
 
   // Mappers
 
-  private Entry mapEntry(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
+  private Entry mapEntry(java.sql.ResultSet rs, @SuppressWarnings("unused") int rowNum)
+      throws java.sql.SQLException {
     String captureIdStr = rs.getString("capture_id");
     return new Entry(
         EntryId.of(rs.getString("id")),
@@ -284,7 +285,8 @@ public class SqliteJournalRepository {
         Instant.parse(rs.getString("updated_at")));
   }
 
-  private Reminder mapReminder(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
+  private Reminder mapReminder(java.sql.ResultSet rs, @SuppressWarnings("unused") int rowNum)
+      throws java.sql.SQLException {
     return new Reminder(
         ReminderId.of(rs.getString("id")),
         rs.getString("title"),

@@ -41,8 +41,10 @@ public class SecurityConfig {
                 auth.requestMatchers(
                         "/actuator/health",
                         "/.well-known/oauth-authorization-server",
+                        "/.well-known/oauth-protected-resource",
                         "/oauth/authorize",
-                        "/oauth/token")
+                        "/oauth/token",
+                        "/oauth/register")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
