@@ -11,6 +11,7 @@ spring:
       server:
         name: journal-mcp
         version: 0.1.0
+        protocol: STREAMABLE
 
 journal:
   api-key: ${JOURNAL_API_KEY}

@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Controller
 public class OauthController {
+
+  private static final Logger log = LoggerFactory.getLogger(OauthController.class);
 
   private final byte[] expectedKey;
   private final String apiKey;
@@ -145,12 +149,16 @@ public class OauthController {
       @RequestParam("code_verifier") String codeVerifier,
       @RequestParam("client_id") String clientId) {
 
+    log.debug("Token request: grant_type={}, client_id={}", grantType, clientId);
+
     if (!"authorization_code".equals(grantType)) {
+      log.warn("Token request rejected: unsupported grant_type={}", grantType);
       return ResponseEntity.badRequest().body(Map.of("error", "unsupported_grant_type"));
     }
 
     var pending = codeStore.consume(code);
     if (pending == null) {
+      log.warn("Token request rejected: invalid or expired authorization code");
       return ResponseEntity.badRequest()
           .body(
               Map.of(
@@ -173,6 +181,7 @@ public class OauthController {
           .body(Map.of("error", "invalid_grant", "error_description", "PKCE verification failed"));
     }
 
+    log.debug("Token exchange succeeded for client_id={}", clientId);
     return ResponseEntity.ok(
         Map.of("access_token", apiKey, "token_type", "bearer", "expires_in", 86400));
   }
