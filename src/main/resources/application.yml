@@ -24,3 +24,4 @@ management:
 
 server:
   port: 18080
+  forward-headers-strategy: native

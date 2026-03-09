@@ -1,5 +1,6 @@
 package com.journal.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -48,6 +49,25 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(
+                    (request, response, authException) -> {
+                      String scheme = request.getScheme();
+                      String host = request.getServerName();
+                      int port = request.getServerPort();
+                      boolean defaultPort =
+                          ("http".equals(scheme) && port == 80)
+                              || ("https".equals(scheme) && port == 443);
+                      String base =
+                          defaultPort ? scheme + "://" + host : scheme + "://" + host + ":" + port;
+                      response.setHeader(
+                          "WWW-Authenticate",
+                          "Bearer resource_metadata=\""
+                              + base
+                              + "/.well-known/oauth-protected-resource\"");
+                      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    }))
         .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }
