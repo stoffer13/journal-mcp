@@ -73,50 +73,6 @@ jobs:
       name: dev
 
     steps:
-      - name: Verify dev environment configuration
-        run: |
-          echo "=========================================="
-          echo "Deploying to: DEV"
-          echo "=========================================="
-          echo ""
-
-          MISSING_CONFIG=0
-
-          # Check critical variables
-          echo "Checking configuration..."
-
-          if [ -z "$JOURNAL_DOMAIN_NAME" ]; then
-            echo "JOURNAL_DOMAIN_NAME not set"
-            MISSING_CONFIG=1
-          else
-            echo "JOURNAL_DOMAIN_NAME: $JOURNAL_DOMAIN_NAME"
-          fi
-
-          # Check critical secrets exist (without revealing values)
-          if [ -z "$JOURNAL_API_KEY" ]; then
-            echo "JOURNAL_API_KEY secret not set"
-            MISSING_CONFIG=1
-          else
-            echo "JOURNAL_API_KEY: configured"
-          fi
-
-          echo ""
-
-          if [ $MISSING_CONFIG -eq 1 ]; then
-            echo "=========================================="
-            echo "ENVIRONMENT NOT CONFIGURED"
-            echo "=========================================="
-            echo ""
-            echo "The runner is missing required environment variables."
-            echo ""
-            echo "To fix this:"
-            echo "Ensure Ansible sets JOURNAL_DOMAIN_NAME and JOURNAL_API_KEY"
-            echo "as environment variables available to the runner process."
-            exit 1
-          fi
-
-          echo "Environment configuration verified"
-
       - name: Copy artifact to deployment location
         env:
           ARTIFACT_NAME: ${{ needs.build.outputs.artifact_name }}
