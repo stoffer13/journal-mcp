@@ -16,5 +16,11 @@ journal:
   api-key: ${JOURNAL_API_KEY}
   data-dir: ${JOURNAL_DATA_DIR:${user.home}/.journal-mcp}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 server:
   port: 18080
