@@ -85,15 +85,15 @@ jobs:
           # Check critical variables
           echo "Checking configuration..."
 
-          if [ -z "${{ vars.DOMAIN_NAME }}" ]; then
-            echo "DOMAIN_NAME not set"
+          if [ -z "$JOURNAL_DOMAIN_NAME" ]; then
+            echo "JOURNAL_DOMAIN_NAME not set"
             MISSING_CONFIG=1
           else
-            echo "DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}"
+            echo "JOURNAL_DOMAIN_NAME: $JOURNAL_DOMAIN_NAME"
           fi
 
           # Check critical secrets exist (without revealing values)
-          if [ -z "${{ secrets.JOURNAL_API_KEY }}" ]; then
+          if [ -z "$JOURNAL_API_KEY" ]; then
             echo "JOURNAL_API_KEY secret not set"
             MISSING_CONFIG=1
           else
@@ -107,12 +107,11 @@ jobs:
             echo "ENVIRONMENT NOT CONFIGURED"
             echo "=========================================="
             echo ""
-            echo "The 'dev' environment is missing required configuration."
+            echo "The runner is missing required environment variables."
             echo ""
             echo "To fix this:"
-            echo "1. Go to: Settings > Environments"
-            echo "2. Create/select environment: dev"
-            echo "3. Add required Variables and Secrets"
+            echo "Ensure Ansible sets JOURNAL_DOMAIN_NAME and JOURNAL_API_KEY"
+            echo "as environment variables available to the runner process."
             exit 1
           fi
 
@@ -130,13 +129,13 @@ jobs:
       - name: Create dev environment configuration
         run: |
           echo "Environment configuration:"
-          echo "  JOURNAL_DATA_DIR=${{ vars.JOURNAL_DATA_DIR || '~/.journal-mcp' }}"
-          echo "  SERVER_PORT=${{ vars.SERVER_PORT || '18080' }}"
+          echo "  JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}"
+          echo "  SERVER_PORT=${SERVER_PORT:-18080}"
 
           cat > /tmp/app.env << EOF
-          JOURNAL_API_KEY=${{ secrets.JOURNAL_API_KEY }}
-          JOURNAL_DATA_DIR=${{ vars.JOURNAL_DATA_DIR || '~/.journal-mcp' }}
-          SERVER_PORT=${{ vars.SERVER_PORT || '18080' }}
+          JOURNAL_API_KEY=$JOURNAL_API_KEY
+          JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}
+          SERVER_PORT=${SERVER_PORT:-18080}
           JAVA_OPTS=--enable-preview --enable-native-access=ALL-UNNAMED
           EOF
 
@@ -169,7 +168,7 @@ jobs:
           sleep 5
 
           # Health check
-          HEALTH_URL="https://${{ vars.DOMAIN_NAME }}/actuator/health"
+          HEALTH_URL="https://$JOURNAL_DOMAIN_NAME/actuator/health"
           echo "Checking health endpoint: ${HEALTH_URL}"
 
           MAX_ATTEMPTS=10
