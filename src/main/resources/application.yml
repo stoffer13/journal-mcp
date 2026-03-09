@@ -14,7 +14,7 @@ spring:
 
 journal:
   api-key: ${JOURNAL_API_KEY}
-  data-dir: ${user.home}/.journal-mcp
+  data-dir: ${JOURNAL_DATA_DIR:${user.home}/.journal-mcp}
 
 server:
   port: 18080

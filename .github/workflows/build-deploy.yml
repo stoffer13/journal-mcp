@@ -1,0 +1,211 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main       # Deploys to dev
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '25'
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: self-hosted
+    permissions:
+      checks: write
+      contents: read
+
+    outputs:
+      artifact_name: ${{ steps.artifact.outputs.name }}
+      artifact_version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Display Java version
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          ./mvnw --version
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Application version: ${VERSION}"
+
+      - name: Build, test and verify
+        run: |
+          ./mvnw clean verify
+
+      - name: Set artifact name
+        id: artifact
+        run: |
+          ARTIFACT_NAME="app-${{ steps.version.outputs.version }}-${{ github.sha }}.jar"
+          echo "name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+          # Rename built artifact
+          cp target/*.jar "${ARTIFACT_NAME}"
+
+      - name: Store artifact locally
+        run: |
+          ARTIFACT_DIR="/opt/artifacts"
+          cp "${ARTIFACT_NAME}" "${ARTIFACT_DIR}/${ARTIFACT_NAME}"
+          echo "Stored artifact at ${ARTIFACT_DIR}/${ARTIFACT_NAME}"
+
+          # Keep only the last 10 JARs, remove older ones
+          cd "${ARTIFACT_DIR}"
+          ls -t *.jar | tail -n +11 | xargs -r rm --
+          echo "Cleanup complete. Current artifacts:"
+          ls -lt *.jar
+        env:
+          ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: build
+    runs-on: self-hosted
+    environment:
+      name: dev
+
+    steps:
+      - name: Verify dev environment configuration
+        run: |
+          echo "=========================================="
+          echo "Deploying to: DEV"
+          echo "=========================================="
+          echo ""
+
+          MISSING_CONFIG=0
+
+          # Check critical variables
+          echo "Checking configuration..."
+
+          if [ -z "${{ vars.DOMAIN_NAME }}" ]; then
+            echo "DOMAIN_NAME not set"
+            MISSING_CONFIG=1
+          else
+            echo "DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}"
+          fi
+
+          # Check critical secrets exist (without revealing values)
+          if [ -z "${{ secrets.JOURNAL_API_KEY }}" ]; then
+            echo "JOURNAL_API_KEY secret not set"
+            MISSING_CONFIG=1
+          else
+            echo "JOURNAL_API_KEY: configured"
+          fi
+
+          echo ""
+
+          if [ $MISSING_CONFIG -eq 1 ]; then
+            echo "=========================================="
+            echo "ENVIRONMENT NOT CONFIGURED"
+            echo "=========================================="
+            echo ""
+            echo "The 'dev' environment is missing required configuration."
+            echo ""
+            echo "To fix this:"
+            echo "1. Go to: Settings > Environments"
+            echo "2. Create/select environment: dev"
+            echo "3. Add required Variables and Secrets"
+            exit 1
+          fi
+
+          echo "Environment configuration verified"
+
+      - name: Copy artifact to deployment location
+        env:
+          ARTIFACT_NAME: ${{ needs.build.outputs.artifact_name }}
+        run: |
+          ARTIFACT_DIR="/opt/artifacts"
+          echo "Copying ${ARTIFACT_DIR}/${ARTIFACT_NAME} to /tmp/app.jar"
+          cp "${ARTIFACT_DIR}/${ARTIFACT_NAME}" /tmp/app.jar
+          echo "Artifact copied successfully"
+
+      - name: Create dev environment configuration
+        run: |
+          echo "Environment configuration:"
+          echo "  JOURNAL_DATA_DIR=${{ vars.JOURNAL_DATA_DIR || '~/.journal-mcp' }}"
+          echo "  SERVER_PORT=${{ vars.SERVER_PORT || '18080' }}"
+
+          cat > /tmp/app.env << EOF
+          JOURNAL_API_KEY=${{ secrets.JOURNAL_API_KEY }}
+          JOURNAL_DATA_DIR=${{ vars.JOURNAL_DATA_DIR || '~/.journal-mcp' }}
+          SERVER_PORT=${{ vars.SERVER_PORT || '18080' }}
+          JAVA_OPTS=--enable-preview --enable-native-access=ALL-UNNAMED
+          EOF
+
+          echo "Environment configuration file created at /tmp/app.env"
+
+      - name: Deploy using blue-green script
+        env:
+          ARTIFACT_VERSION: ${{ needs.build.outputs.artifact_version }}
+        run: |
+          echo "Deploying version ${{ needs.build.outputs.artifact_version }} locally..."
+
+          # Run the blue-green deployment script with environment file
+          echo "Starting blue-green deployment..."
+          /opt/scripts/deploy-cd.sh /tmp/app.jar /tmp/app.env
+
+          # Check deployment status
+          echo ""
+          echo "Deployment status:"
+          /opt/scripts/service-status.sh
+
+          # Clean up temporary files
+          rm -f /tmp/app.jar /tmp/app.env
+
+          echo ""
+          echo "Deployment completed successfully!"
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for application to be fully ready..."
+          sleep 5
+
+          # Health check
+          HEALTH_URL="https://${{ vars.DOMAIN_NAME }}/actuator/health"
+          echo "Checking health endpoint: ${HEALTH_URL}"
+
+          MAX_ATTEMPTS=10
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            if curl -sf "${HEALTH_URL}" > /dev/null; then
+              echo "Application is healthy!"
+              curl -s "${HEALTH_URL}" | jq .
+              exit 0
+            fi
+            echo "Attempt ${i}/${MAX_ATTEMPTS} - waiting..."
+            sleep 3
+          done
+
+          echo "Health check failed after ${MAX_ATTEMPTS} attempts"
+          exit 1
+
+      - name: Notify dev deployment success
+        if: success()
+        run: |
+          echo "Dev deployment successful!"
+          echo "Version: ${{ needs.build.outputs.artifact_version }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Environment: dev"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed, initiating rollback..."
+
+          # Run rollback script
+          /opt/scripts/rollback.sh
+
+          echo "Rollback status:"
+          /opt/scripts/service-status.sh
+
+          echo "Deployment failed and rolled back"
+          exit 1
+
+      # No cleanup needed - deployment runs locally on self-hosted runner
