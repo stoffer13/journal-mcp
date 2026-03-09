@@ -54,9 +54,9 @@ public class OauthController {
         <head><title>Journal MCP — Sign In</title></head>
         <body>
         <h2>Journal MCP — Sign In</h2>
-        <form method="POST" action="/oauth/authorize">
+        <form method="POST" action="/oauth/authorize" autocomplete="off">
           <label for="api_key">API Key:</label><br>
-          <input type="password" id="api_key" name="api_key" required><br><br>
+          <input type="password" id="api_key" name="api_key" autocomplete="off" required><br><br>
           <input type="hidden" name="redirect_uri" value="%s">
           <input type="hidden" name="state" value="%s">
           <input type="hidden" name="code_challenge" value="%s">
@@ -98,9 +98,9 @@ public class OauthController {
               <body>
               <h2>Journal MCP — Sign In</h2>
               <p style="color:red;">Invalid API key. Please try again.</p>
-              <form method="POST" action="/oauth/authorize">
+              <form method="POST" action="/oauth/authorize" autocomplete="off">
                 <label for="api_key">API Key:</label><br>
-                <input type="password" id="api_key" name="api_key" required><br><br>
+                <input type="password" id="api_key" name="api_key" autocomplete="off" required><br><br>
                 <input type="hidden" name="redirect_uri" value="%s">
                 <input type="hidden" name="state" value="%s">
                 <input type="hidden" name="code_challenge" value="%s">
