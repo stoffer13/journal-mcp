@@ -86,12 +86,10 @@ jobs:
         run: |
           echo "Environment configuration:"
           echo "  JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}"
-          echo "  SERVER_PORT=${SERVER_PORT:-18080}"
 
           cat > /tmp/app.env << EOF
           JOURNAL_API_KEY=$JOURNAL_API_KEY
           JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}
-          SERVER_PORT=${SERVER_PORT:-18080}
           JAVA_OPTS=--enable-preview --enable-native-access=ALL-UNNAMED
           EOF
 
@@ -105,7 +103,7 @@ jobs:
 
           # Run the blue-green deployment script with environment file
           echo "Starting blue-green deployment..."
-          /opt/scripts/deploy-cd.sh /tmp/app.jar /tmp/app.env
+          /opt/scripts/deploy-journal-mcp.sh /tmp/app.jar /tmp/app.env
 
           # Check deployment status
           echo ""
@@ -155,7 +153,7 @@ jobs:
           echo "Deployment failed, initiating rollback..."
 
           # Run rollback script
-          /opt/scripts/rollback.sh
+          /opt/scripts/rollback-journal-mcp.sh
 
           echo "Rollback status:"
           /opt/scripts/service-status.sh
