@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: journal-mcp
+  datasource:
+    url: jdbc:sqlite:${journal.data-dir}/journal.db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  ai:
+    mcp:
+      server:
+        name: journal-mcp
+        version: 0.1.0
+
+journal:
+  api-key: ${JOURNAL_API_KEY}
+  data-dir: ${user.home}/.journal-mcp
+
+server:
+  port: 18080
