@@ -75,3 +75,4 @@ No test suite yet. Verify with:
 - [docs/mcp-tools.md](docs/mcp-tools.md) — all MCP tool signatures and prompt definitions
 - [docs/domain-model.md](docs/domain-model.md) — value objects, domain records, categories, entity types
 - [docs/security.md](docs/security.md) — auth flow, filter behavior, Spring Security setup
+
