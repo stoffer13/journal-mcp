@@ -82,18 +82,6 @@ jobs:
           cp "${ARTIFACT_DIR}/${ARTIFACT_NAME}" /tmp/app.jar
           echo "Artifact copied successfully"
 
-      - name: Create dev environment configuration
-        run: |
-          echo "Environment configuration:"
-          echo "  JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}"
-
-          cat > /tmp/app.env << EOF
-          JOURNAL_API_KEY=$JOURNAL_API_KEY
-          JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}
-          EOF
-
-          echo "Environment configuration file created at /tmp/app.env"
-
       - name: Deploy using blue-green script
         env:
           ARTIFACT_VERSION: ${{ needs.build.outputs.artifact_version }}
@@ -102,7 +90,7 @@ jobs:
 
           # Run the blue-green deployment script with environment file
           echo "Starting blue-green deployment..."
-          /opt/scripts/deploy-journal-mcp.sh /tmp/app.jar /tmp/app.env
+          /opt/scripts/deploy-journal-mcp.sh /tmp/app.jar
 
           # Check deployment status
           echo ""
@@ -110,7 +98,7 @@ jobs:
           /opt/scripts/service-status.sh
 
           # Clean up temporary files
-          rm -f /tmp/app.jar /tmp/app.env
+          rm -f /tmp/app.jar
 
           echo ""
           echo "Deployment completed successfully!"
