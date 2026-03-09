@@ -35,7 +35,7 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .anonymous(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/health", "/.well-known/oauth-authorization-server", "/oauth/authorize", "/oauth/token").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
