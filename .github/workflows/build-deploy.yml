@@ -90,7 +90,6 @@ jobs:
           cat > /tmp/app.env << EOF
           JOURNAL_API_KEY=$JOURNAL_API_KEY
           JOURNAL_DATA_DIR=${JOURNAL_DATA_DIR:-~/.journal-mcp}
-          JAVA_OPTS=--enable-preview --enable-native-access=ALL-UNNAMED
           EOF
 
           echo "Environment configuration file created at /tmp/app.env"
@@ -121,8 +120,9 @@ jobs:
           echo "Waiting for application to be fully ready..."
           sleep 5
 
-          # Health check
-          HEALTH_URL="https://$JOURNAL_DOMAIN_NAME/actuator/health"
+          # Read the active port from nginx upstream config
+          ACTIVE_PORT=$(grep -oP 'server 127\.0\.0\.1:\K[0-9]+' /etc/nginx/conf.d/active-upstream-mcp.conf)
+          HEALTH_URL="http://localhost:${ACTIVE_PORT}/actuator/health"
           echo "Checking health endpoint: ${HEALTH_URL}"
 
           MAX_ATTEMPTS=10
