@@ -85,6 +85,11 @@ public class OauthController {
       HttpServletResponse response)
       throws IOException {
 
+    System.err.println(
+        "DEBUG OAuth: submitted length="
+            + submittedKey.length()
+            + " expected length="
+            + expectedKey.length);
     if (!MessageDigest.isEqual(submittedKey.getBytes(StandardCharsets.UTF_8), expectedKey)) {
       response.setContentType("text/html");
       response.setStatus(HttpServletResponse.SC_OK);
