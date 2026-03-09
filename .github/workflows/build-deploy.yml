@@ -149,4 +149,3 @@ jobs:
           echo "Deployment failed and rolled back"
           exit 1
 
-      # No cleanup needed - deployment runs locally on self-hosted runner
