@@ -57,8 +57,8 @@ MCP clients (Claude Desktop, Cursor, etc.) discover and use OAuth2 to obtain a B
 |-------|---------|
 | `PkceUtil` | Static utility: `computeS256Challenge(verifier)` → `BASE64URL(SHA-256(verifier))` |
 | `AuthorizationCodeStore` | `@Component` with `ConcurrentHashMap`. Stores/consumes codes atomically. 5-min expiry, 10-min cleanup. |
-| `OAuthMetadataController` | `GET /.well-known/oauth-authorization-server` — RFC 8414 metadata derived from request URL |
-| `OAuthController` | `GET/POST /oauth/authorize` + `POST /oauth/token` — full authorization code + PKCE flow |
+| `OauthMetadataController` | `GET /.well-known/oauth-authorization-server` — RFC 8414 metadata derived from request URL |
+| `OauthController` | `GET/POST /oauth/authorize` + `POST /oauth/token` — full authorization code + PKCE flow |
 
 ## Configuration
 

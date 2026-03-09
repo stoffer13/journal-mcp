@@ -13,7 +13,7 @@ Java 25 (`--enable-preview`) · Spring Boot 4.0.3 · Spring AI 1.1.2 (MCP server
 java --enable-preview --enable-native-access=ALL-UNNAMED -jar target/journal-mcp-0.1.0.jar
 ```
 
-Server starts on port 8080. MCP transport: HTTP/SSE at `/sse`.
+Server starts on port 18080. MCP transport: HTTP/SSE at `/sse`.
 
 ## Architecture
 
@@ -76,3 +76,9 @@ No test suite yet. Verify with:
 - [docs/domain-model.md](docs/domain-model.md) — value objects, domain records, categories, entity types
 - [docs/security.md](docs/security.md) — auth flow, filter behavior, Spring Security setup
 
+## Git Workflow
+
+**NEVER run `git commit` or `git push` autonomously.** Always:
+1. Run `find src -name "*.java" | xargs google-java-format --replace` before staging
+2. Suggest a commit message for the user to review
+3. Wait for explicit user instruction before committing
