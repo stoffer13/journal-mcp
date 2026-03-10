@@ -95,7 +95,7 @@ jobs:
           # Check deployment status
           echo ""
           echo "Deployment status:"
-          /opt/scripts/service-status.sh
+          /opt/scripts/service-status.sh journal-mcp
 
           # Clean up temporary files
           rm -f /tmp/app.jar
@@ -144,7 +144,7 @@ jobs:
           /opt/scripts/rollback-journal-mcp.sh
 
           echo "Rollback status:"
-          /opt/scripts/service-status.sh
+          /opt/scripts/service-status.sh journal-mcp
 
           echo "Deployment failed and rolled back"
           exit 1

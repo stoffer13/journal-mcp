@@ -5,13 +5,11 @@ info:
 
 http:
   method: GET
-  url: http://localhost:18080/sse
+  url: http://localhost:18080/actuator/health
   headers:
     - name: Accept
       value: text/event-stream
-  auth:
-    type: bearer
-    token: ""
+      disabled: true
 
 settings:
   encodeUrl: true

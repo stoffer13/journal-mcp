@@ -5,13 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:18080/sse
+  url: https://dev-mcp-api.emaat.dk/mcp
   headers:
     - name: Accept
       value: text/event-stream
-  auth:
-    type: bearer
-    token: ""
 
 settings:
   encodeUrl: true
